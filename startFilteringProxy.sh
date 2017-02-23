@@ -77,6 +77,10 @@ docker run -${DEAMON_OR_ITERACTIVE} -p 80:80 \
 	-v $PWD/proxy.conf:/etc/httpd/conf.d/proxy.conf:ro \
 	-v $PWD/proxy.conf:/etc/apache2/conf-enabled/proxy.conf:ro \
 	-v $PWD/apache_groups:/etc/httpd/apache_groups:ro \
+        -v /ifb/data:/ifb/data \
 	--name ${DOCKER_IMAGE_NAME}  \
 	${DOCKER_IMAGE_OWNER}/${DOCKER_IMAGE_NAME} $1
 
+
+echo -e "\n\n"
+docker ps
