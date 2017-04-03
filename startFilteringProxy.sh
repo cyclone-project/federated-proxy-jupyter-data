@@ -1,6 +1,6 @@
 #!/bin/sh
 DOCKER_IMAGE_OWNER=cyclone
-DOCKER_IMAGE_NAME=federated-filtering-proxy
+DOCKER_IMAGE_NAME=federated-proxy-jupyter
 FQDN=${FQDN:-$(              hostname -I | sed 's/ /\n/g' | grep -v 172.17 | head -n 1)}
 TARGET_FQDN=${TARGET_FQDN:-$(hostname -I | sed 's/ /\n/g' | grep    172.17 | head -n 1)}
 TARGET_PORT=${TARGET_PORT:-8080}
@@ -14,7 +14,12 @@ fi
 DEAMON_OR_ITERACTIVE=${DEAMON_OR_ITERACTIVE:-$DEFAULT_DEAMON_OR_ITERACTIVE}
 SUDO_CMD=${SUDO_CMD:-sudo}
 DOCKERFILE=${DOCKERFILE:-Dockerfile}
-LOG_DIR=${LOG_DIR:-/var/log/httpd-federated-filtering-proxy}
+LOG_DIR=${LOG_DIR:-/var/log/httpd-proxy-jupyter}
+DATA_DIR=${DATA_DIR:-/root/mydisk}
+UI_DIR=${DATA_DIR}/_h5ai
+H5AI_ZIP="h5ai-0.29.0.zip"
+H5AI_URL="https://release.larsjung.de/h5ai/${H5AI_ZIP}"
+
 
 if [ ! -d $LOG_DIR ]
 then
@@ -44,6 +49,7 @@ echo "SUDO_CMD:$SUDO_CMD"
 echo "ALLOWED_EMAIL_SPACE_SEPARATED_VALUES:$ALLOWED_EMAIL_SPACE_SEPARATED_VALUES"
 echo "DOCKERFILE:$DOCKERFILE"
 echo "LOG_DIR:$LOG_DIR"
+echo "DATA_DIR:$DATA_DIR"
 
 if [ ! -e ./apache_groups ]
 then
@@ -57,7 +63,30 @@ then
   echo "cyclone: $ALLOWED_EMAIL_SPACE_SEPARATED_VALUES" > apache_groups
 fi
 
+# Install graphic dependency in DATA_DIR $DATA_DIR
+if [ ! -d $UI_DIR ]; then
+	which unzip
+	res=$?
 
+        # if [ $( which unzip &> /dev/null ; echo $?) -ne 0 ]; then
+        if [ $res -ne 0 ]; then
+                echo "Install unzip package res value is $res"
+                apt-get install --yes unzip # &> /dev/null
+	else
+		echo "unzip should be installed $(which unzip). Res value is $res."
+        fi
+
+        echo "Install Web server interface."
+        wget --no-verbose ${H5AI_URL} -P /tmp
+        unzip -q /tmp/${H5AI_ZIP} -d ${DATA_DIR}
+        rm /tmp/${H5AI_ZIP}
+
+        if [ -d $UI_DIR ]; then
+                echo "Sucessfully install Web server $H5AI_ZIP"
+        else
+                echo "Fail to install  Web server $H5AI_ZIP"
+        fi
+fi
 
 echo "to open $TARGET_PORT:\niptables -I INPUT 1 -p tcp -i docker0 -m tcp --dport $TARGET_PORT -j ACCEPT"
 
@@ -65,7 +94,7 @@ echo "redirecting / to http://${TARGET_FQDN}:${TARGET_PORT}${TARGET_PATH}"
 echo "user(s) allowed:"
 cat apache_groups
 
-docker rm -f federated-filtering-proxy
+docker rm -f ${DOCKER_IMAGE_NAME}
 docker build -t ${DOCKER_IMAGE_OWNER}/${DOCKER_IMAGE_NAME}  \
 	-f ${DOCKERFILE} . &&  \
 docker run -${DEAMON_OR_ITERACTIVE} -p 80:80 \
@@ -77,7 +106,7 @@ docker run -${DEAMON_OR_ITERACTIVE} -p 80:80 \
 	-v $PWD/proxy.conf:/etc/httpd/conf.d/proxy.conf:ro \
 	-v $PWD/proxy.conf:/etc/apache2/conf-enabled/proxy.conf:ro \
 	-v $PWD/apache_groups:/etc/httpd/apache_groups:ro \
-        -v /ifb/data:/ifb/data \
+        -v $DATA_DIR:/ifb/data \
 	--name ${DOCKER_IMAGE_NAME}  \
 	${DOCKER_IMAGE_OWNER}/${DOCKER_IMAGE_NAME} $1
 

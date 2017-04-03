@@ -9,6 +9,9 @@ EXPOSE 80
 RUN apt-get update && apt-get install -y \
 		apache2 \
 		wget \
+                php5-common \
+                libapache2-mod-php5 \
+                php5-cli \
 		gcc \
 		libjansson4 \
 		libhiredis0.10 \
