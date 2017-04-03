@@ -65,13 +65,12 @@ fi
 
 # Install graphic dependency in DATA_DIR $DATA_DIR
 if [ ! -d $UI_DIR ]; then
-	which unzip
+	which unzip &> /dev/null
 	res=$?
 
-        # if [ $( which unzip &> /dev/null ; echo $?) -ne 0 ]; then
         if [ $res -ne 0 ]; then
                 echo "Install unzip package res value is $res"
-                apt-get install --yes unzip # &> /dev/null
+                apt-get install --yes unzip &> /dev/null
 	else
 		echo "unzip should be installed $(which unzip). Res value is $res."
         fi
