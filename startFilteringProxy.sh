@@ -66,6 +66,8 @@ fi
 
 # Install graphic dependency in DATA_DIR $DATA_DIR
 apt-get install --yes unzip &> /dev/null
+sleep 5s
+
 if [ ! -d $UI_DIR ]; then
         echo "Install Web server interface."
         wget --no-verbose ${H5AI_URL} -P /tmp
