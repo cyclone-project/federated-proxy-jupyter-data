@@ -65,17 +65,8 @@ then
 fi
 
 # Install graphic dependency in DATA_DIR $DATA_DIR
+apt-get install --yes unzip &> /dev/null
 if [ ! -d $UI_DIR ]; then
-	which unzip &> /dev/null
-	res=$?
-
-        if [ $res -ne 0 ]; then
-                echo "Install unzip package res value is $res"
-                apt-get install --yes unzip &> /dev/null
-	else
-		echo "unzip should be installed $(which unzip). Res value is $res."
-        fi
-
         echo "Install Web server interface."
         wget --no-verbose ${H5AI_URL} -P /tmp
         unzip -q /tmp/${H5AI_ZIP} -d ${DATA_DIR}
