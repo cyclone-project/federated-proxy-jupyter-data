@@ -73,6 +73,7 @@ if [ ! -d $UI_DIR ]; then
         wget --no-verbose ${H5AI_URL} -P /tmp
         unzip -q /tmp/${H5AI_ZIP} -d ${DATA_DIR}
         rm /tmp/${H5AI_ZIP}
+	mv ${DATA_DIR}/_h5ai ${DATA_DIR}/._h5ai
 
         if [ -d $UI_DIR ]; then
                 echo "Sucessfully install Web server $H5AI_ZIP"
